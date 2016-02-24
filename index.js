@@ -93,9 +93,6 @@ function sendPosts(err, posts) {
     var year = date.getFullYear();
     date=day+"/"+month+"/"+year;
 
-    console.log(posts);
-    process.exit(0);
-
     var receivers="";
     for (var d in conf.mail.destination[dest]) {
         receivers+=conf.mail.destination[dest][d]+','
@@ -123,13 +120,13 @@ function sendPosts(err, posts) {
 }
 
 function updatePosts(dest) {
-    var filter={"status":"success"}
+    var filter={"status":"success", date:{$lte:today}}
     filter[dest]=true;
     Posts.update(filter,{$set:{"status":"sent"}},{multi:true},handleError);
 }
 
 function expirePosts() {
-    Posts.update({"status":"waiting",date:{$lt:today}},{$set:{"status":"failure"}},{multi:true},function(err) {
+    Posts.update({"status":"waiting",date:{$lte:today}},{$set:{"status":"failure"}},{multi:true},function(err) {
         if(err) throw err;
         mongoose.connection.close;
         mailer.close();
@@ -139,4 +136,4 @@ function expirePosts() {
 
 function handleError(err) {
     if(err) throw err;
-};
+}
