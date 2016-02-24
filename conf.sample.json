@@ -1,0 +1,16 @@
+{
+    "mail": {
+        "fromAddress":"",
+        "replyToAddress":"",
+        "destination": {
+            "centrale":[],
+            "iteem": []
+        }
+    },
+    "auth": {
+        "addr":"",
+        "login":"",
+        "pw":"",
+        "db":""
+    }
+}
