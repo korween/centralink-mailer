@@ -113,7 +113,8 @@ function sendPosts(err, posts,dest) {
         template: 'email_body',
         context: {
             dateNow: date,
-            posts: output
+            posts: output,
+            address: conf.mail.centralinkAddress
         }
     }, function(err) {
         if(err) throw err;

@@ -2,6 +2,7 @@
     "mail": {
         "fromAddress":"",
         "replyToAddress":"",
+        "centralinkAddress":"",
         "destination": {
             "centrale":[],
             "iteem": []
