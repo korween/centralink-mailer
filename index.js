@@ -44,8 +44,7 @@ var Posts = mongoose.model('Posts', {
 
 var connection = "mongodb://"+conf.auth.login+':'+conf.auth.pw+'@'+conf.auth.addr+"/"+conf.auth.db;
 
-var today=new Date();
-today.setHours(21,00,00,000);
+var today=new Date().toISOString();
 
 mongoose.connect(connection,function(err,data){
     if(err) throw err;
@@ -56,17 +55,24 @@ mongoose.connect(connection,function(err,data){
 
 /* ========================================================================= */
 
-function sendPosts(err, posts) {
+function sendPosts(err, posts,dest) {
     if(err) throw err;
     if (!posts[0]) {
         mongoose.connection.close();
         process.exit(0);
     }
-    var dest=(posts[id].centrale)?'centrale':'iteem';
+    var dest=(posts[0].centrale && flag==0)?'centrale':'iteem';
 
     var output={comm:[],events:[],misc:[],special:[]};
 
     for (var id in posts) {
+	var dateFormatted=new Date(posts[id].date);
+    	var d = dateFormatted.getDate();
+    	var m = dateFormatted.getMonth()+1;
+    	var y = dateFormatted.getFullYear();
+    	dateFormatted=d+"/"+m+"/"+y;
+	posts[id].dateFormatted=dateFormatted;
+
         posts[id].content = (posts[id].content + '').replace(/(\r\n|\n\r|\r|\n|&#10;&#13;|&#13;&#10;|&#10;|&#13;)/g, '!br79!');
         switch (posts[id].category) {
             case "Communication":
@@ -93,16 +99,16 @@ function sendPosts(err, posts) {
     var year = date.getFullYear();
     date=day+"/"+month+"/"+year;
 
-    var receivers="";
+    var recipients="";
     for (var d in conf.mail.destination[dest]) {
-        receivers+=conf.mail.destination[dest][d]+','
+        recipients+=conf.mail.destination[dest][d]+','
     }
-    receivers=receivers.slice(-1);
+    recipients=recipients.slice(0,-1);
 
     mailer.sendMail({
         from: conf.mail.fromAddress,
-        to: receivers,
-        replyTo: '',
+        to: recipients,
+        replyTo: conf.mail.replyToAddress,
         subject: 'Centralink du '+date, // TODO: date
         template: 'email_body',
         context: {
@@ -133,7 +139,6 @@ function expirePosts() {
     Posts.update({"status":"waiting",date:{$lte:today}},{$set:{"status":"failure"}},{multi:true},function(err) {
         if(err) throw err;
         mongoose.connection.close;
-        process.exit(0);
     });
 }
 
