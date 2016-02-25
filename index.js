@@ -34,7 +34,7 @@ var options = {
 var Posts = mongoose.model('Posts', {
     title : String,
     category: String,
-    date: String,
+    date: Date,
     content: String,
     author: String,
     status: String,
@@ -45,12 +45,12 @@ var Posts = mongoose.model('Posts', {
 var connection = "mongodb://"+conf.auth.login+':'+conf.auth.pw+'@'+conf.auth.addr+"/"+conf.auth.db;
 
 var today=new Date();
-today.setHours(23,59,59,999);
+today.setHours(21,00,00,000);
 
 mongoose.connect(connection,function(err,data){
     if(err) throw err;
-    Posts.find({status:"success",date:{$lt:today},centrale:true},sendPosts);
-    Posts.find({status:"success",date:{$lt:today},iteem:true},sendPosts);
+    Posts.find({status:"success",date:{$lte:today},centrale:true},sendPosts);
+    Posts.find({status:"success",date:{$lte:today},iteem:true},sendPosts);
 });
 
 
@@ -111,6 +111,10 @@ function sendPosts(err, posts) {
         }
     }, function(err) {
         if(err) throw err;
+        if (flag==2) {
+            mailer.close();
+            process.exit(0);
+        }
     });
     updatePosts(dest);
     flag++;
@@ -129,7 +133,6 @@ function expirePosts() {
     Posts.update({"status":"waiting",date:{$lte:today}},{$set:{"status":"failure"}},{multi:true},function(err) {
         if(err) throw err;
         mongoose.connection.close;
-        mailer.close();
         process.exit(0);
     });
 }
